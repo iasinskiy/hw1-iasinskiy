@@ -1,0 +1,98 @@
+{
+  "_comment": "The registration catalogue for Sublab Easy. Invented for this assignment - these are not real Narxoz offerings. The awkward cases are deliberate: two courses collide on Tuesday morning, two are full, one has a single seat left, and the student has already passed four of them.",
+  "term": "2026-FALL",
+  "rules": {
+    "max_credits": 30,
+    "min_credits": 15,
+    "note": "A student may not register for a course whose prerequisites they have not completed, that is full, that they have already passed, or that collides with another course in the same registration."
+  },
+  "student": {
+    "student_id": "S-2023-0417",
+    "year": 3,
+    "programme": "Computer Science",
+    "completed": ["MAT-2020", "CSS-3005", "ECN-2101", "CSS-3011"]
+  },
+  "courses": [
+    {
+      "code": "CSS-4007",
+      "title": "Artificial Intelligence",
+      "credits": 6,
+      "prerequisites": ["CSS-3011"],
+      "schedule": [{"day": "Tuesday", "start": "09:00", "end": "10:50"},
+                   {"day": "Thursday", "start": "09:00", "end": "10:50"}],
+      "seats_total": 40,
+      "seats_taken": 38,
+      "instructor": "A. Shalkarbayuly"
+    },
+    {
+      "code": "CSS-4102",
+      "title": "Distributed Systems",
+      "credits": 5,
+      "prerequisites": ["CSS-3005"],
+      "schedule": [{"day": "Tuesday", "start": "09:00", "end": "10:50"}],
+      "seats_total": 35,
+      "seats_taken": 20,
+      "instructor": "D. Nurlanova"
+    },
+    {
+      "code": "CSS-4400",
+      "title": "Natural Language Processing",
+      "credits": 6,
+      "prerequisites": ["CSS-3011"],
+      "schedule": [{"day": "Tuesday", "start": "14:00", "end": "15:50"}],
+      "seats_total": 25,
+      "seats_taken": 25,
+      "instructor": "A. Shalkarbayuly"
+    },
+    {
+      "code": "CSS-3011",
+      "title": "Machine Learning Foundations",
+      "credits": 6,
+      "prerequisites": ["MAT-2020"],
+      "schedule": [{"day": "Monday", "start": "11:00", "end": "12:50"}],
+      "seats_total": 60,
+      "seats_taken": 60,
+      "instructor": "R. Zhaksylyk"
+    },
+    {
+      "code": "CSS-3005",
+      "title": "Operating Systems",
+      "credits": 5,
+      "prerequisites": [],
+      "schedule": [{"day": "Wednesday", "start": "14:00", "end": "15:50"}],
+      "seats_total": 45,
+      "seats_taken": 31,
+      "instructor": "D. Nurlanova"
+    },
+    {
+      "code": "MAT-2020",
+      "title": "Linear Algebra",
+      "credits": 5,
+      "prerequisites": [],
+      "schedule": [{"day": "Monday", "start": "09:00", "end": "10:50"}],
+      "seats_total": 90,
+      "seats_taken": 74,
+      "instructor": "G. Sarsenbay"
+    },
+    {
+      "code": "ECN-2101",
+      "title": "Microeconomics",
+      "credits": 4,
+      "prerequisites": [],
+      "schedule": [{"day": "Thursday", "start": "14:00", "end": "15:50"}],
+      "seats_total": 120,
+      "seats_taken": 96,
+      "instructor": "B. Amanzhol"
+    },
+    {
+      "code": "FIN-3300",
+      "title": "Financial Modelling",
+      "credits": 5,
+      "prerequisites": ["ECN-2101", "MAT-2020"],
+      "schedule": [{"day": "Friday", "start": "11:00", "end": "12:50"}],
+      "seats_total": 30,
+      "seats_taken": 29,
+      "instructor": "B. Amanzhol"
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "_comment": "Six meanings, each written three times: Kazakh, Russian, English. Written for this assignment - these are not translations of any published source, so nothing here is a claim about a corpus. They exist so that tokens-per-character can be compared across scripts at roughly equal content.",
+  "triplets": [
+    {
+      "id": "p1",
+      "kk": "Астана қаласында жаңа кітапхана ашылды.",
+      "ru": "В городе Астане открылась новая библиотека.",
+      "en": "A new library opened in the city of Astana."
+    },
+    {
+      "id": "p2",
+      "kk": "Оқушылар мектеп кітапханасында кітап оқып отыр.",
+      "ru": "Ученики читают книги в школьной библиотеке.",
+      "en": "The pupils are reading books in the school library."
+    },
+    {
+      "id": "p3",
+      "kk": "Бүгін ауа райы салқын және жаңбыр жауады.",
+      "ru": "Сегодня погода прохладная и будет дождь.",
+      "en": "The weather is cool today and it will rain."
+    },
+    {
+      "id": "p4",
+      "kk": "Университет студенттерге жаңа зертхана ұсынды.",
+      "ru": "Университет предложил студентам новую лабораторию.",
+      "en": "The university offered the students a new laboratory."
+    },
+    {
+      "id": "p5",
+      "kk": "Ғылыми мақала өткен аптада жарияланды.",
+      "ru": "Научная статья была опубликована на прошлой неделе.",
+      "en": "The research paper was published last week."
+    },
+    {
+      "id": "p6",
+      "kk": "Бағдарламашы қателікті түзетіп, кодты қайта жіберді.",
+      "ru": "Программист исправил ошибку и отправил код заново.",
+      "en": "The programmer fixed the bug and submitted the code again."
+    }
+  ]
+}

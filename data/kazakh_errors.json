@@ -1,0 +1,88 @@
+{
+  "note": "Correct sentences are real published Kazakh. Corruptions are synthetic and labelled. The 'correct' field is the marking reference, but a model may return a different valid Kazakh sentence - grade the analysis, not string equality.",
+  "generated_by": "make_dataset.py",
+  "sentences": [
+    {
+      "id": "KZ-01",
+      "corrupted": "Касым-Жомарт Токаев биркатар мемлекеттин елшисинен сеним грамоталарын кабылдады",
+      "correct": "Қасым-Жомарт Тоқаев бірқатар мемлекеттің елшісінен сенім грамоталарын қабылдады",
+      "errors": [
+        "kaz_to_rus"
+      ],
+      "edits_applied": 10,
+      "source": "Kazinform (kaz.inform.kz), fetched 2026-08-19, quoted verbatim. Headlines from the Kazakh-language edition."
+    },
+    {
+      "id": "KZ-02",
+      "corrupted": "Баспанада 50% ға дейін үлесі бар азаматтар мемлекеттік тұрғын үйді жекешелендіре алады",
+      "correct": "Баспанада 50%-ға дейін үлесі бар азаматтар мемлекеттік тұрғын үйді жекешелендіре алады",
+      "errors": [
+        "drop_hyphen"
+      ],
+      "edits_applied": 1,
+      "source": "Kazinform (kaz.inform.kz), fetched 2026-08-19, quoted verbatim. Headlines from the Kazakh-language edition."
+    },
+    {
+      "id": "KZ-03",
+      "corrupted": "Aлaяқtарға ақшаңызды аударып қойсаңыз не істеу керек",
+      "correct": "Алаяқтарға ақшаңызды аударып қойсаңыз не істеу керек",
+      "errors": [
+        "latin_homoglyph"
+      ],
+      "edits_applied": 3,
+      "source": "Kazinform (kaz.inform.kz), fetched 2026-08-19, quoted verbatim. Headlines from the Kazakh-language edition."
+    },
+    {
+      "id": "KZ-04",
+      "corrupted": "Елде жалган дипломдар ушін қандай жаза қарастырылған",
+      "correct": "Елде жалған дипломдар үшін қандай жаза қарастырылған",
+      "errors": [
+        "kaz_to_rus_partial"
+      ],
+      "edits_applied": 2,
+      "source": "Kazinform (kaz.inform.kz), fetched 2026-08-19, quoted verbatim. Headlines from the Kazakh-language edition."
+    },
+    {
+      "id": "KZ-05",
+      "corrupted": "Алматыдағы ғимараттардыңқаншасы жер сілкінісіне төзімді",
+      "correct": "Алматыдағы ғимараттардың қаншасы жер сілкінісіне төзімді",
+      "errors": [
+        "join_words"
+      ],
+      "edits_applied": 1,
+      "source": "Kazinform (kaz.inform.kz), fetched 2026-08-19, quoted verbatim. Headlines from the Kazakh-language edition."
+    },
+    {
+      "id": "KZ-06",
+      "corrupted": "Елде жжеті айда 9,7 млн шаршы метр тұрғын үй пайдалануға берілді",
+      "correct": "Елде жеті айда 9,7 млн шаршы метр тұрғын үй пайдалануға берілді",
+      "errors": [
+        "double_letter"
+      ],
+      "edits_applied": 1,
+      "source": "Kazinform (kaz.inform.kz), fetched 2026-08-19, quoted verbatim. Headlines from the Kazakh-language edition."
+    },
+    {
+      "id": "KZ-07",
+      "corrupted": "Алаяктардан корганужолдары: елорда прокуратурасы ескерту жасады",
+      "correct": "Алаяқтардан қорғану жолдары: елорда прокуратурасы ескерту жасады",
+      "errors": [
+        "kaz_to_rus",
+        "join_words"
+      ],
+      "edits_applied": 4,
+      "source": "Kazinform (kaz.inform.kz), fetched 2026-08-19, quoted verbatim. Headlines from the Kazakh-language edition."
+    },
+    {
+      "id": "KZ-08",
+      "corrupted": "Дoнaлльд Tрамп Ким Чен Ынмен осы күзде қайта кездескісі келеді",
+      "correct": "Дональд Трамп Ким Чен Ынмен осы күзде қайта кездескісі келеді",
+      "errors": [
+        "latin_homoglyph",
+        "double_letter"
+      ],
+      "edits_applied": 4,
+      "source": "Kazinform (kaz.inform.kz), fetched 2026-08-19, quoted verbatim. Headlines from the Kazakh-language edition."
+    }
+  ]
+}
