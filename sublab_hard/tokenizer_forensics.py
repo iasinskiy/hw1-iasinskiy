@@ -34,11 +34,7 @@ DATA = Path(__file__).resolve().parent.parent / "data"
 PARALLEL = DATA / "parallel.json"
 KAZAKH_ERRORS = DATA / "kazakh_errors.json"
 
-# Both are real tiktoken encodings. Do not use tiktoken.encoding_for_model():
-# the models in this course are newer than your installed tiktoken and it will
-# not know their names.
 ENCODINGS = ["cl100k_base", "o200k_base"]
-
 LANGS = ["kk", "ru", "en"]
 
 
@@ -57,87 +53,51 @@ def load_sentences() -> list[dict]:
 # --------------------------------------------------------------------------
 
 def encode(text: str, encoding_name: str = "o200k_base") -> list[int]:
-    """Token ids for `text` under the named encoding.
-
-    Two lines: get the encoding, encode the text.
-    """
-    # TODO: tiktoken.get_encoding(encoding_name).encode(text)
-    raise NotImplementedError
+    """Token ids for `text` under the named encoding."""
+    enc = tiktoken.get_encoding(encoding_name)
+    return enc.encode(text)
 
 
 def pieces(ids: list[int], encoding_name: str = "o200k_base") -> list[str]:
-    """The text of each token, one string per id.
-
-    This is the function that makes the whole sublab visible - it is the
-    difference between "8 tokens" and seeing the word come apart. Decode each
-    id on its own, not the list as a whole.
-    """
-    # TODO
-    raise NotImplementedError
+    """The text of each token, one string per id."""
+    enc = tiktoken.get_encoding(encoding_name)
+    res = []
+    for token_id in ids:
+        raw_bytes = enc.decode_single_token_bytes(token_id)
+        res.append(raw_bytes.decode("utf-8", errors="replace"))
+    return res
 
 
 # --------------------------------------------------------------------------
-# Pure measurements. No tokenizer in here - these take ids you already have,
-# so you can check them by hand against the examples in each docstring before
-# you run anything against real text.
+# Pure measurements.
 # --------------------------------------------------------------------------
 
 def tokens_per_char(text: str, ids: list[int]) -> float:
-    """How many tokens each character of `text` cost.
-
-    The comparison across languages only works per character; a Kazakh sentence
-    and its English translation are not the same length, so raw token counts
-    would be measuring the translation, not the tokenizer.
-
-    Return 0.0 for empty text rather than dividing by zero.
-
-    >>> tokens_per_char("abcd", [1, 2])
-    0.5
-    >>> tokens_per_char("", [])
-    0.0
-    """
-    # TODO
-    raise NotImplementedError
+    """How many tokens each character of `text` cost."""
+    if not text:
+        return 0.0
+    return len(ids) / len(text)
 
 
 def first_divergence(a: list[int], b: list[int]) -> int | None:
-    """Index of the first position where two token streams differ.
-
-    Returns None if one is a prefix of the other and they are the same length,
-    i.e. if the streams are identical. If they share a prefix and then differ -
-    including when one simply runs out - return the length of the shared prefix.
-
-    >>> first_divergence([1, 2, 3], [1, 2, 3])
-
-    >>> first_divergence([1, 2, 3], [1, 9, 3])
-    1
-    >>> first_divergence([1, 2], [1, 2, 3])
-    2
-    """
-    # TODO
-    raise NotImplementedError
+    """Index of the first position where two token streams differ."""
+    for i in range(min(len(a), len(b))):
+        if a[i] != b[i]:
+            return i
+    if len(a) != len(b):
+        return min(len(a), len(b))
+    return None
 
 
 def foreign_chars(text: str) -> list[tuple[int, str, str]]:
-    """Every character that is a letter but not a Cyrillic one.
-
-    This is how you find a homoglyph without knowing in advance where it is.
-    A Latin `c` sitting inside a Kazakh word looks identical to a Cyrillic `с`
-    on screen; it is a different code point, and `unicodedata.name` says so.
-
-    Returns:
-        A list of (index, character, unicode name), in order. Skip anything
-        that is not a letter - spaces, digits and punctuation are not the
-        interesting case.
-
-    >>> foreign_chars("аcа")[0][:2]
-    (1, 'c')
-    >>> foreign_chars("Астана")
-    []
-    """
-    # TODO: unicodedata.name(ch) for each letter; a Cyrillic one has "CYRILLIC"
-    #       in its name.
-    raise NotImplementedError
+    """Every character that is a letter but not a Cyrillic one."""
+    res = []
+    for idx, ch in enumerate(text):
+        if ch.isalpha():
+            name = unicodedata.name(ch, "")
+            if "CYRILLIC" not in name:
+                res.append((idx, ch, name))
+    return res
 
 
 # --------------------------------------------------------------------------
@@ -145,54 +105,54 @@ def foreign_chars(text: str) -> list[tuple[int, str, str]]:
 # --------------------------------------------------------------------------
 
 def language_table(encoding_name: str) -> dict[str, dict]:
-    """Total tokens, total characters and tokens-per-character, per language.
+    """Total tokens, total characters and tokens-per-character, per language."""
+    triplets = load_triplets()
+    res = {}
+    for lang in LANGS:
+        total_tokens = 0
+        total_chars = 0
+        for trip in triplets:
+            text = trip[lang]
+            ids = encode(text, encoding_name)
+            total_tokens += len(ids)
+            total_chars += len(text)
+        res[lang] = {
+            "tokens": total_tokens,
+            "chars": total_chars,
+            "tok_per_char": tokens_per_char("a" * total_chars, [0] * total_tokens),
+        }
+    return res
 
-    Sum over all six triplets, do not average the per-sentence ratios - a long
-    sentence and a short one should not count equally.
 
-    Returns:
-        {"kk": {"tokens": int, "chars": int, "tok_per_char": float}, "ru": ..., "en": ...}
-    """
-    # TODO
-    raise NotImplementedError
-
-
-def cost_per_thousand(tok_per_char: float, chars: int,
-                      rate_in: float = 5.00) -> float:
-    """What 1,000 sentences of this length would cost as input tokens.
-
-    `rate_in` is dollars per million tokens; the default is gpt-5.6-sol's input
-    rate. This turns a ratio into the only unit anyone outside this classroom
-    cares about.
-
-    >>> round(cost_per_thousand(0.5, 100, 10.0), 6)
-    0.5
-    """
-    # TODO
-    raise NotImplementedError
+def cost_per_thousand(
+    tok_per_char: float, chars: int, rate_in: float = 5.00
+) -> float:
+    """What 1,000 sentences of this length would cost as input tokens."""
+    return (tok_per_char * chars * rate_in) / 1000.0
 
 
 # --------------------------------------------------------------------------
 # B. What the homoglyph did
 # --------------------------------------------------------------------------
 
-def homoglyph_report(corrupted: str, correct: str,
-                     encoding_name: str = "o200k_base") -> dict:
-    """Side-by-side forensics on one corrupted sentence.
+def homoglyph_report(
+    corrupted: str, correct: str, encoding_name: str = "o200k_base"
+) -> dict:
+    """Side-by-side forensics on one corrupted sentence."""
+    foreign = foreign_chars(corrupted)
+    ids_corr = encode(correct, encoding_name)
+    ids_corp = encode(corrupted, encoding_name)
+    div = first_divergence(ids_corr, ids_corp)
 
-    Returns:
-        {
-          "foreign": [(index, char, unicode_name), ...],   # from `foreign_chars`
-          "tokens_correct": int,
-          "tokens_corrupted": int,
-          "delta": int,                 # corrupted minus correct
-          "diverge_at": int | None,     # from `first_divergence`
-          "pieces_correct": [str, ...],
-          "pieces_corrupted": [str, ...],
-        }
-    """
-    # TODO
-    raise NotImplementedError
+    return {
+        "foreign": foreign,
+        "tokens_correct": len(ids_corr),
+        "tokens_corrupted": len(ids_corp),
+        "delta": len(ids_corp) - len(ids_corr),
+        "diverge_at": div,
+        "pieces_correct": pieces(ids_corr, encoding_name),
+        "pieces_corrupted": pieces(ids_corp, encoding_name),
+    }
 
 
 def show_homoglyphs(encoding_name: str = "o200k_base") -> None:
@@ -203,14 +163,23 @@ def show_homoglyphs(encoding_name: str = "o200k_base") -> None:
         return
     for row in rows:
         rep = homoglyph_report(row["corrupted"], row["correct"], encoding_name)
-        print("\n  [%s]  %+d tokens (%d -> %d), diverging at index %s"
-              % (row["id"], rep["delta"], rep["tokens_correct"],
-                 rep["tokens_corrupted"], rep["diverge_at"]))
+        print(
+            "\n  [%s]  %+d tokens (%d -> %d), diverging at index %s"
+            % (
+                row["id"],
+                rep["delta"],
+                rep["tokens_correct"],
+                rep["tokens_corrupted"],
+                rep["diverge_at"],
+            )
+        )
         for idx, ch, name in rep["foreign"]:
             print("    char %d is %r - %s" % (idx, ch, name))
         d = rep["diverge_at"] or 0
-        print("    correct  : %s" % rep["pieces_correct"][max(0, d - 1):d + 5])
-        print("    corrupted: %s" % rep["pieces_corrupted"][max(0, d - 1):d + 5])
+        print("    correct  : %s" % rep["pieces_correct"][max(0, d - 1) : d + 5])
+        print(
+            "    corrupted: %s" % rep["pieces_corrupted"][max(0, d - 1) : d + 5]
+        )
 
 
 if __name__ == "__main__":
@@ -221,12 +190,16 @@ if __name__ == "__main__":
         print("    %-4s %8s %8s %12s" % ("lang", "tokens", "chars", "tok/char"))
         for lang in LANGS:
             row = table[lang]
-            print("    %-4s %8d %8d %12.3f"
-                  % (lang, row["tokens"], row["chars"], row["tok_per_char"]))
+            print(
+                "    %-4s %8d %8d %12.3f"
+                % (lang, row["tokens"], row["chars"], row["tok_per_char"])
+            )
         base = table["en"]["tok_per_char"]
         for lang in LANGS:
-            print("    %s costs %.2fx English"
-                  % (lang, table[lang]["tok_per_char"] / base))
+            print(
+                "    %s costs %.2fx English"
+                % (lang, table[lang]["tok_per_char"] / base)
+            )
 
     print("\n=== B. what a Latin homoglyph does to the token stream ===")
     show_homoglyphs("o200k_base")
@@ -234,6 +207,10 @@ if __name__ == "__main__":
     print("\n=== C. did the newer tokenizer narrow the gap? ===")
     old, new = (language_table(e) for e in ENCODINGS)
     for lang in LANGS:
-        print("  %s: %.3f -> %.3f tok/char"
-              % (lang, old[lang]["tok_per_char"], new[lang]["tok_per_char"]))
-    print("\n  Now answer question 2 in SUBMISSION.md, with these numbers in hand.")
+        print(
+            "  %s: %.3f -> %.3f tok/char"
+            % (lang, old[lang]["tok_per_char"], new[lang]["tok_per_char"])
+        )
+    print(
+        "\n  Now answer question 2 in SUBMISSION.md, with these numbers in hand."
+    )
