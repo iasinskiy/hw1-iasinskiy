@@ -5,9 +5,66 @@ from openai import OpenAI
 
 load_dotenv()
 
+# Тарифы моделей за 1,000,000 токенов (в долларах USA)
+RATES_PER_MTOK = {
+    "openai/gpt-4o-mini": (0.15, 0.60),
+    "deepseek/deepseek-chat": (0.14, 0.28),
+    "meta-llama/llama-3.3-70b-instruct": (0.12, 0.30),
+    "openrouter/free": (0.0, 0.0),
+}
+
+
+def openrouter_client() -> OpenAI:
+    """Возвращает клиент OpenAI для работы через OpenRouter с таймаутом."""
+    return OpenAI(
+        base_url="https://openrouter.ai/api/v1",
+        api_key=os.getenv("OPENROUTER_API_KEY"),
+        timeout=30.0,  # Увеличено до 30 секунд
+    )
+
+
+def openai_client() -> OpenAI:
+    """Возвращает клиент OpenAI с таймаутом."""
+    return OpenAI(
+        api_key=os.getenv("OPENAI_API_KEY"),
+        timeout=30.0,
+    )
+
+
+def chat(messages: list, model: str, via: str = "openai") -> dict:
+    """Отправляет диалог модели и возвращает текст ответа со статистикой токенов."""
+    client = openrouter_client() if via == "openrouter" else openai_client()
+
+    response = client.chat.completions.create(
+        model=model,
+        messages=messages,
+    )
+
+    return {
+        "text": response.choices[0].message.content,
+        "input_tokens": response.usage.prompt_tokens,
+        "output_tokens": response.usage.completion_tokens,
+        "model": model,
+    }
+
+
+def ask_once(prompt: str, model: str, via: str = "openai") -> dict:
+    """Отправляет один одиночный запрос (без сохранения истории)."""
+    messages = [{"role": "user", "content": prompt}]
+    return chat(messages, model, via)
+
+
+def estimate_cost(
+    input_tokens: int, output_tokens: int, rate_in: float, rate_out: float
+) -> float:
+    """Считает стоимость запроса в долларах."""
+    return (input_tokens * (rate_in / 1_000_000)) + (
+        output_tokens * (rate_out / 1_000_000)
+    )
+
 
 def build_system_prompt(catalogue: dict) -> str:
-    
+    """Формирует системный промпт со всеми правилами и каталогом курсов."""
     student = catalogue.get("student", {})
     courses = catalogue.get("courses", [])
     rules = catalogue.get("rules", {})
@@ -46,54 +103,15 @@ COURSE CATALOGUE:
     return prompt.strip()
 
 
-def openrouter_client() -> OpenAI:
-    
-    return OpenAI(
-        base_url="https://openrouter.ai/api/v1",
-        api_key=os.getenv("OPENROUTER_API_KEY"),
-    )
-
-
-def openai_client() -> OpenAI:
-   
-    return OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
-
-def chat(messages: list, model: str, via: str = "openai") -> dict:
-    
-    client = openrouter_client() if via == "openrouter" else openai_client()
-
-    response = client.chat.completions.create(
-        model=model,
-        messages=messages,
-    )
-
-    return {
-        "text": response.choices[0].message.content,
-        "input_tokens": response.usage.prompt_tokens,
-        "output_tokens": response.usage.completion_tokens,
-        "model": model,
-    }
-
-
-def estimate_cost(
-    input_tokens: int, output_tokens: int, rate_in: float, rate_out: float
-) -> float:
-    
-    return (input_tokens * (rate_in / 1_000_000)) + (
-        output_tokens * (rate_out / 1_000_000)
-    )
-
-
 def conversation_cost(usages: list, rate_in: float, rate_out: float) -> float:
-   
+    """Считает стоимость всей истории диалога."""
     total_in = sum(u["input_tokens"] for u in usages)
     total_out = sum(u["output_tokens"] for u in usages)
     return estimate_cost(total_in, total_out, rate_in, rate_out)
 
 
 def run_turn(messages: list, question: str, model: str, via: str) -> dict:
-    
+    """Добавляет вопрос пользователя и запрашивает ответ у модели."""
     messages.append({"role": "user", "content": question})
     res = chat(messages, model, via)
     messages.append({"role": "assistant", "content": res["text"]})
@@ -118,45 +136,23 @@ def main():
 
     system_prompt = build_system_prompt(catalogue)
 
-    # Прогон 1 через OpenRouter Free Router
-    print("=== RUNNING OPENROUTER (Free Router - Model 1) ===")
-    messages_free1 = [{"role": "system", "content": system_prompt}]
-    usages_free1 = []
+    model_name = "openai/gpt-4o-mini"
+    rate_in, rate_out = RATES_PER_MTOK.get(model_name, (0.15, 0.60))
+
+    print(f"=== RUNNING OPENROUTER ({model_name}) ===")
+    messages = [{"role": "system", "content": system_prompt}]
+    usages = []
 
     for idx, q in enumerate(SCRIPT, 1):
         usage = run_turn(
-            messages_free1,
+            messages,
             q,
-            model="openrouter/free",
+            model=model_name,
             via="openrouter",
         )
-        usages_free1.append(usage)
+        usages.append(usage)
         cost = estimate_cost(
-            usage["input_tokens"], usage["output_tokens"], 0.0, 0.0
-        )
-        print(
-            f"Turn {idx} | In: {usage['input_tokens']} | Out: {usage['output_tokens']} | Cost: ${cost:.6f}"
-        )
-        print(f"Bot: {usage['text']}\n" + "-" * 40)
-
-    # Прогон 2 через OpenRouter Free Router
-    print("\n=== RUNNING OPENROUTER (Free Router - Model 2) ===")
-    messages_free2 = [{"role": "system", "content": system_prompt}]
-    usages_free2 = []
-
-    for idx, q in enumerate(SCRIPT, 1):
-        usage = run_turn(
-            messages_free2,
-            q,
-            model="openrouter/free",
-            via="openrouter",
-        )
-        usages_free2.append(usage)
-        cost = estimate_cost(
-            usage["input_tokens"],
-            usage["output_tokens"],
-            0.0,
-            0.0,
+            usage["input_tokens"], usage["output_tokens"], rate_in, rate_out
         )
         print(
             f"Turn {idx} | In: {usage['input_tokens']} | Out: {usage['output_tokens']} | Cost: ${cost:.6f}"
